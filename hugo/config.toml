@@ -1,0 +1,6 @@
+baseURL = "https://example.com/"  # Replace with your final site URL when deploying
+languageCode = "en-us"
+title = "ECHOLOVE"
+
+# Configure output directories
+# You can generate the site with `hugo` and publish the contents of the `public` folder to GitHub Pages.

@@ -36,3 +36,11 @@ dist/
 
 # Logs
 *.log
+
+# Hugo build artefacts
+hugo/public/
+hugo/.hugo_build.lock
+hugo/resources/
+
+# Optional: ignore any lock files in the project root
+*.lock
