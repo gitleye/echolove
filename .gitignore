@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / compiled Python files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+.venv/
+venv/
+
+# Environment variables and secrets
+.env
+
+# Local SQLite databases
+*.db
+echolove.db
+
+# Archive and packaging files
+*.tar.gz
+*.zip
+
+# Node dependencies
+node_modules/
+
+# macOS and OS-specific files
+.DS_Store
+
+# Coverage reports and test caches
+*.coverage
+.coverage/
+.cache/
+.tox/
+
+# Build and distribution directories
+build/
+dist/
+
+# Logs
+*.log
