@@ -10,7 +10,15 @@ from .schemas import ToolOut, ReviewOut
 
 # Initialize the FastAPI app
 app = FastAPI(title="ECHOLOVE API", version="0.1")
+from fastapi.middleware.cors import CORSMiddleware
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup() -> None:
