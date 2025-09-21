@@ -1,6 +1,7 @@
 """FastAPI application exposing the ECHOLOVE API."""
 
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from typing import Optional, List
@@ -10,8 +11,10 @@ from .schemas import ToolOut, ReviewOut
 
 # Initialize the FastAPI app
 app = FastAPI(title="ECHOLOVE API", version="0.1")
-from fastapi.middleware.cors import CORSMiddleware
 
+# Enable CORS for all origins to allow the frontend to fetch from the API when
+# served from a different port (e.g., a Vite or static server). This is safe
+# for development purposes. In production, restrict origins as needed.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,6 +22,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.on_event("startup")
 def startup() -> None:

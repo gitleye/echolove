@@ -70,7 +70,8 @@
         search: '',
         sourceFilter: 'all',
         currentPage: 1,
-        itemsPerPage: 6,
+        // Show 15 tools per page (5 rows x 3 columns)
+        itemsPerPage: 15,
       };
 
       async function loadTools() {
@@ -95,8 +96,12 @@
             btn.textContent = label;
             btn.className = `px-3 py-1 rounded-full text-sm font-medium border transition ${state.sourceFilter === key ? 'bg-accent text-black' : 'bg-surface text-gray-300'} hover:bg-accent hover:text-black`;
             btn.addEventListener('click', () => {
+              // Update the active filter and reset to the first page
               state.sourceFilter = key;
               state.currentPage = 1;
+              // Re-render filters so the selected button gets highlighted
+              renderFilters();
+              // Apply filtering based on new source and search
               applyFilters();
             });
             return btn;
@@ -109,6 +114,8 @@
       }
 
       function applyFilters() {
+        // Ensure filter buttons reflect current state
+        renderFilters();
         const query = state.search.toLowerCase();
         state.filtered = state.allTools.filter(tool => {
           const matchesSource = state.sourceFilter === 'all' || (tool.reviews && tool.reviews[0] && tool.reviews[0].source_kind === state.sourceFilter);
@@ -127,9 +134,14 @@
         pageItems.forEach(tool => {
           const card = document.createElement('div');
           card.className = 'bg-surface rounded-xl p-5 flex flex-col shadow hover:shadow-lg transition';
-          const title = document.createElement('h3');
-          title.className = 'text-xl font-semibold text-accent mb-1';
-          title.textContent = tool.name;
+          // Title becomes a clickable link to the tool's source (homepage, repo or review URL)
+          const anchor = document.createElement('a');
+          anchor.className = 'text-xl font-semibold text-accent mb-1 hover:underline';
+          const link = tool.homepage || tool.repo_url || (tool.reviews && tool.reviews[0] && tool.reviews[0].source_url) || '#';
+          anchor.href = link;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener';
+          anchor.textContent = tool.name;
           const desc = document.createElement('p');
           desc.className = 'text-gray-400 text-sm mb-2';
           desc.textContent = tool.description || 'No description available.';
@@ -154,7 +166,7 @@
           if (tool.reviews && tool.reviews.length > 0) {
             snippet.textContent = tool.reviews[0].snippet;
           }
-          card.appendChild(title);
+          card.appendChild(anchor);
           card.appendChild(desc);
           card.appendChild(tagContainer);
           card.appendChild(source);
@@ -181,12 +193,23 @@
           state.currentPage--;
           renderPage();
         }));
-        // Page numbers: show up to 5 page numbers around current
-        const pages = [];
-        const start = Math.max(1, state.currentPage - 2);
-        const end = Math.min(totalPages, state.currentPage + 2);
-        for (let i = start; i <= end; i++) pages.push(i);
-        pages.forEach(num => {
+        // Page numbers: always show first and last page, and a sliding window of pages around the current page.
+        // Determine the dynamic range of middle pages (3–5 numbers centered on current page).
+        const windowSize = 5;
+        const windowHalf = Math.floor(windowSize / 2);
+        let windowStart = Math.max(2, state.currentPage - windowHalf);
+        let windowEnd = Math.min(totalPages - 1, state.currentPage + windowHalf);
+        // Adjust window when at the beginning or end
+        if (state.currentPage <= windowHalf + 1) {
+          windowStart = 2;
+          windowEnd = Math.min(totalPages - 1, windowSize);
+        } else if (state.currentPage >= totalPages - windowHalf) {
+          windowEnd = totalPages - 1;
+          windowStart = Math.max(2, totalPages - windowSize + 1);
+        }
+
+        // Always show first page button
+        const addPageButton = (num) => {
           const btn = createBtn(num, false, () => {
             state.currentPage = num;
             renderPage();
@@ -195,7 +218,31 @@
             btn.className += ' bg-primary text-white';
           }
           pagin.appendChild(btn);
-        });
+        };
+        addPageButton(1);
+
+        // Ellipsis if needed before middle pages
+        if (windowStart > 2) {
+          const ellipsis = document.createElement('span');
+          ellipsis.textContent = '...';
+          ellipsis.className = 'px-2 py-1 text-gray-500 select-none';
+          pagin.appendChild(ellipsis);
+        }
+        // Middle page buttons
+        for (let i = windowStart; i <= windowEnd; i++) {
+          addPageButton(i);
+        }
+        // Ellipsis if needed after middle pages
+        if (windowEnd < totalPages - 1) {
+          const ellipsis2 = document.createElement('span');
+          ellipsis2.textContent = '...';
+          ellipsis2.className = 'px-2 py-1 text-gray-500 select-none';
+          pagin.appendChild(ellipsis2);
+        }
+        // Last page button if more than one page
+        if (totalPages > 1) {
+          addPageButton(totalPages);
+        }
         // Next button
         pagin.appendChild(createBtn('Next', state.currentPage === totalPages, () => {
           state.currentPage++;
