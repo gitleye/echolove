@@ -31,17 +31,17 @@ data "aws_iam_policy_document" "apprunner_assume_role" {
   }
 }
 
-resource "aws_iam_role" "apprunner_service_role" {
-  name               = "${var.project_name}-apprunner-role"
-  assume_role_policy = data.aws_iam_policy_document.apprunner_assume_role.json
-}
+# resource "aws_iam_role" "apprunner_service_role" {
+#   name               = "${var.project_name}-apprunner-role"
+#   assume_role_policy = data.aws_iam_policy_document.apprunner_assume_role.json
+# }
 
 # Attach the managed policy that grants App Runner read access to ECR.
 # See AWS documentation for details on this policy.
-resource "aws_iam_role_policy_attachment" "apprunner_ecr_access" {
-  role       = aws_iam_role.apprunner_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
-}
+# resource "aws_iam_role_policy_attachment" "apprunner_ecr_access" {
+#   role       = aws_iam_role.apprunner_service_role.name
+#   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+# }
 
 ##############################
 # AWS App Runner service
@@ -51,57 +51,57 @@ resource "aws_iam_role_policy_attachment" "apprunner_ecr_access" {
 # a public HTTPS endpoint.  You can customize CPU and memory settings
 # through the instance_configuration block.  Environment variables from
 # your .env file can be passed into the container via runtime_environment_variables.
-resource "aws_apprunner_service" "echolove" {
-  service_name = "${var.project_name}-api"
+# resource "aws_apprunner_service" "echolove" {
+#   service_name = "${var.project_name}-api"
 
-  source_configuration {
-    authentication_configuration {
-      # Use the IAM role created above to allow App Runner to access ECR.
-      access_role_arn = aws_iam_role.apprunner_service_role.arn
-    }
-    # Disable auto deployments.  When set to true, App Runner will
-    # automatically deploy a new version whenever your ECR image changes.
-    auto_deployments_enabled = false
+#   source_configuration {
+#     authentication_configuration {
+#       # Use the IAM role created above to allow App Runner to access ECR.
+#       access_role_arn = aws_iam_role.apprunner_service_role.arn
+#     }
+#     # Disable auto deployments.  When set to true, App Runner will
+#     # automatically deploy a new version whenever your ECR image changes.
+#     auto_deployments_enabled = false
 
-    image_repository {
-      image_identifier      = "${data.aws_ecr_repository.echolove_api.repository_url}:${var.image_tag}"
-      image_repository_type = "ECR"
-      image_configuration {
-        # The port your application listens on.  Matches the EXPOSE instruction
-        # in your Dockerfile.
-        port = var.app_port
+#     image_repository {
+#       image_identifier      = "${data.aws_ecr_repository.echolove_api.repository_url}:${var.image_tag}"
+#       image_repository_type = "ECR"
+#       image_configuration {
+#         # The port your application listens on.  Matches the EXPOSE instruction
+#         # in your Dockerfile.
+#         port = var.app_port
 
-        # Pass in runtime environment variables.  You can override the values
-        # from your .env file here or leave them unset to fall back to
-        # defaults in the application code.  Feel free to add/remove keys
-        # depending on your ingestion requirements.
-        runtime_environment_variables = {
-          DATABASE_URL        = var.database_url
-          MIN_GITHUB_STARS    = tostring(var.min_github_stars)
-          MAX_GITHUB_STARS    = var.max_github_stars
-          GITHUB_QUERY_ADDITIONS = var.github_query_additions
-          STACKEXCHANGE_SITES = var.stackexchange_sites
-        }
-      }
-    }
-  }
+#         # Pass in runtime environment variables.  You can override the values
+#         # from your .env file here or leave them unset to fall back to
+#         # defaults in the application code.  Feel free to add/remove keys
+#         # depending on your ingestion requirements.
+#         runtime_environment_variables = {
+#           DATABASE_URL        = var.database_url
+#           MIN_GITHUB_STARS    = tostring(var.min_github_stars)
+#           MAX_GITHUB_STARS    = var.max_github_stars
+#           GITHUB_QUERY_ADDITIONS = var.github_query_additions
+#           STACKEXCHANGE_SITES = var.stackexchange_sites
+#         }
+#       }
+#     }
+#   }
 
-  instance_configuration {
-    cpu    = var.apprunner_cpu
-    memory = var.apprunner_memory
-  }
+#   instance_configuration {
+#     cpu    = var.apprunner_cpu
+#     memory = var.apprunner_memory
+#   }
 
-  tags = {
-    Name        = var.project_name
-    Environment = var.environment
-  }
-}
+#   tags = {
+#     Name        = var.project_name
+#     Environment = var.environment
+#   }
+# }
 
 ##############################
 # Outputs
 ##############################
 
-output "service_url" {
-  description = "Public URL of the App Runner service"
-  value       = aws_apprunner_service.echolove.service_url
-}
+# output "service_url" {
+#   description = "Public URL of the App Runner service"
+#   value       = aws_apprunner_service.echolove.service_url
+# }
